@@ -4,9 +4,12 @@
 import os
 import argparse
 
+# internal imports
 import data_tools
 import visual
 from data_tools import parse_data
+import keras_wrapper
+from keras_wrapper import KerasModel
 
 
 def main():
@@ -35,45 +38,49 @@ def main():
 
 
 def user_loop(df):
+    col_name = None
+    NO_COL_ERROR = "Define a column"
+
     while True:
         user_input = input("Enter a command: ")
         user_input = user_input.split()
+        keyword = user_input[0]
 
         if 'help' in user_input:
-            print("Commands: help, plot $col_name, avg $col_name, quit")
-        elif user_input[0] == 'plot':
+            print("Commands: help, define $col_name, plot, avg, lstm, quit")
+        elif keyword == 'define':
             col_name = user_input[1]
-            visual.show_data(df, col_name)
-        elif user_input[0] == 'avg':
-            col_name = user_input[1]
+        elif keyword == 'plot':
+            visual.show_data(df, col_name) if col_name else print(NO_COL_ERROR)
+        elif keyword == 'avg':
+            if not col_name:
+                print(NO_COL_ERROR)
+                continue
+
             print(data_tools.avg_by_day(df, col_name) if col_name in df else "No such column")
+        elif keyword == 'lstm':
+            if not col_name:
+                print(NO_COL_ERROR)
+                continue
+
+            window_size = int(input("Window size? "))
+            model = KerasModel(df, window_size, col_name)
+            model.fit_model()
+            model.plot_training_vs_testing()
+
         elif 'quit' in user_input:
             quit()
 
 
 """
-window_size = 5
 
-model = init_lstm(window_size)
-
-train_in, train_out, test_in, test_out = training_testing_data(window_size, 0.1, 'Volume')
-
-# for i,j in zip(train_windows, train_out):
-#  print(i,j)
-
-model.fit(train_in, train_out, epochs=5, verbose=0)
 
 test_datum = np.array(test_in[0]).reshape(1, window_size, 1)
 
 print(model.predict(test_datum, verbose=0))
 
-predictions = model.predict(test_in)
 
-plt.plot(test_out, label='actual')
-plt.plot(predictions, label='prediction')
-plt.xlim([0, 100])
-plt.legend()
-plt.show()
+
 
 mae = sklearn.metrics.mean_absolute_error(test_out, predictions)
 
