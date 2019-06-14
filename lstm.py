@@ -16,6 +16,7 @@ def main():
     # parse args from command line
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--path')
+    parser.add_argument('-c', '--col_name')
     parser.add_argument('--stock')
     args = parser.parse_args()
 
@@ -23,7 +24,12 @@ def main():
         print("No path specified")
         quit()
 
+    if not args.col_name:
+        print("No column specified")
+        quit()
+
     data_file = args.path
+    col_name = args.col_name
 
     if not os.path.isfile(data_file):
         print(data_file, "is not a file!")
@@ -34,13 +40,10 @@ def main():
 
     df = parse_data(data_file)
 
-    user_loop(df)
+    user_loop(df, col_name)
 
 
-def user_loop(df):
-    col_name = None
-    NO_COL_ERROR = "Define a column"
-
+def user_loop(df, col_name):
     while True:
         user_input = input("Enter a command: ")
         user_input = user_input.split()
@@ -51,23 +54,14 @@ def user_loop(df):
         elif keyword == 'define':
             col_name = user_input[1]
         elif keyword == 'plot':
-            visual.show_data(df, col_name) if col_name else print(NO_COL_ERROR)
+            visual.show_data(df, col_name)
         elif keyword == 'avg':
-            if not col_name:
-                print(NO_COL_ERROR)
-                continue
-
             print(data_tools.avg_by_day(df, col_name) if col_name in df else "No such column")
         elif keyword == 'lstm':
-            if not col_name:
-                print(NO_COL_ERROR)
-                continue
-
             window_size = int(input("Window size? "))
             model = KerasModel(df, window_size, col_name)
             model.fit_model()
             model.plot_training_vs_testing()
-
         elif 'quit' in user_input:
             quit()
 
