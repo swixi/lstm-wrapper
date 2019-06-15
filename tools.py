@@ -1,14 +1,34 @@
-import functools
-
-
-# INPUT: a dataframe $df with a 'Day' column
-# OUTPUT: a dictionary that has the average of $col_name for each day of $df
-# TODO: check, if the df has no Sat column, does this still work?
 import os
 
 import pandas as pd
 
+FORMAT_ERROR = "Wrong format!"
 
+
+def try_parse_int(val):
+    try:
+        return int(val)
+    except ValueError:
+        return None
+
+
+# INPUT: string of the form index1:index2
+# OUTPUT: index1, index2 if in the correct form
+#         None, None if in the the wrong form (with format error thrown)
+# NOTE: None is allowed as an index if, e.g., there is a failed integer parse
+# TODO: allow input as index1:index2 OR date1:date2
+def parse_range(val):
+    if val:
+        vals = val[0].split(":")
+        if len(vals) == 2:
+            return try_parse_int(vals[0]), try_parse_int(vals[1])
+
+    #print(FORMAT_ERROR)
+    return None, None
+
+
+# INPUT: a dataframe $df with a 'Day' column
+# OUTPUT: a dictionary that has the average of $col_name for each day of $df
 def avg_by_day(df, col_name):
     if col_name not in df:
         print("No such column")
@@ -19,7 +39,8 @@ def avg_by_day(df, col_name):
     for key in averages:
         df_day = df[df['Day'] == key]
         if len(df_day):
-            averages[key] = functools.reduce(lambda x, y: x + y, df_day[col_name], 0) / len(df_day)
+            averages[key] = df_day[col_name].mean()
+
     return averages
 
 

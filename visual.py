@@ -6,7 +6,10 @@ def show_data(df, col_name, label="", **indices):
     index1 = indices.get('index1', None)
     index2 = indices.get('index2', None)
 
-    df[index1: index2].plot(x='Date', y=col_name)
+    try:
+        df[index1: index2].plot(x='Date', y=col_name)
+    except TypeError:
+        print("Out of range?")
 
     # TODO: add 'Name', e.g. "spy"
     # plt.legend(loc='upper left')

@@ -64,6 +64,6 @@ class KerasModel(object):
     def predict(self):
         return self.model.predict(self.test_in)
 
-    def plot_training_vs_testing(self):
+    def plot_training_prediction(self):
         prediction = self.predict()
         visual.show_data_compare(self.df['Date'], prediction, self.test_out, 'Training', 'Actual')
