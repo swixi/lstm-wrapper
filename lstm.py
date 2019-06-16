@@ -11,8 +11,6 @@ from tools import parse_data
 from keras_wrapper import KerasModel
 
 
-
-
 def main():
     # parse args from command line
     parser = argparse.ArgumentParser()
@@ -61,34 +59,54 @@ def user_loop(df, col_name):
         elif keyword == 'avg':
             print(tools.avg_by_day(df, col_name) if col_name in df else "No such column")
         elif keyword == 'lstm':
+            if params:
+                window_size = tools.try_parse_int(params[0])
+            else:
+                window_size = 5
 
-            lstm_loop(df, col_name)
+            lstm_loop(df, col_name, window_size)
         elif 'quit' in user_input:
             quit()
 
 
-def lstm_loop(df, col_name):
-    #print
+def lstm_loop(df, col_name, window_size):
+    model = KerasModel(df, window_size, col_name)
+    print("Initiated LSTM with window size {}.".format(window_size), "\n")
+    trained = False
+
     while True:
-        print("LSTM")
-        window_size = int(input("Window size? "))
-        model = KerasModel(df, window_size, col_name)
-        model.fit_model()
-        model.plot_training_prediction()
+        user_input = input("Enter an LSTM command ({}, {}): ".format(col_name, window_size)).split()
+        keyword = user_input[0]
+        params = user_input[1:]
 
-
+        if keyword == "back":
+            return
+        # if a non-valid window size is entered (eg NaN, then keep the current one)
+        elif keyword == "window":
+            if params:
+                new_window_size = tools.try_parse_int(params[0])
+                if new_window_size is not None:
+                    window_size = new_window_size
+                    model = KerasModel(df, window_size, col_name)
+                    trained = False
+        elif keyword == "train":
+            model.fit_model()
+            trained = True
+        elif keyword == "plot":
+            if trained:
+                model.plot_testing_vs_prediction()
+            else:
+                print("Must train model first.")
+        elif keyword == "predict":
+            if trained:
+                print("Prediction: {}".format(model.predict(params[0].split(","))))
+            else:
+                print("Must train model first.")
+        elif 'quit' in user_input:
+            quit()
 
 
 """
-
-
-test_datum = np.array(test_in[0]).reshape(1, window_size, 1)
-
-print(model.predict(test_datum, verbose=0))
-
-
-
-
 mae = sklearn.metrics.mean_absolute_error(test_out, predictions)
 
 print('MAE: {}'.format(mae))

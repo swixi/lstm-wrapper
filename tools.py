@@ -5,11 +5,22 @@ import pandas as pd
 FORMAT_ERROR = "Wrong format!"
 
 
+# try to parse an int from a string
 def try_parse_int(val):
     try:
         return int(val)
     except ValueError:
         return None
+
+
+# INPUT: a list of strings where each string is known to represent an integer
+# OUTPUT: the same list, now as integers
+def parse_int_list(str_list):
+    int_list = []
+    for var in str_list:
+        int_list.append(try_parse_int(var))
+
+    return int_list
 
 
 # INPUT: string of the form index1:index2

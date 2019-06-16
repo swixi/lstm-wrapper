@@ -61,9 +61,20 @@ class KerasModel(object):
         self.model.fit(self.train_in, self.train_out, epochs=5, verbose=0)
 
     # call after fit_model
-    def predict(self):
+    def predict_on_test_data(self):
         return self.model.predict(self.test_in)
 
-    def plot_training_prediction(self):
-        prediction = self.predict()
+    def plot_testing_vs_prediction(self):
+        prediction = self.predict_on_test_data()
         visual.show_data_compare(self.df['Date'], prediction, self.test_out, 'Training', 'Actual')
+
+    # predict an output based on a single window input
+    # INPUT must be of length window_size
+    def predict(self, test_datum):
+        try:
+            test_datum = np.array(test_datum).reshape(1, self.window_size, 1)
+        except ValueError:
+            print("Wrong shape?")
+            return None
+
+        return self.model.predict(test_datum, verbose=0)
