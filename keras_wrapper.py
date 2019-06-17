@@ -54,19 +54,19 @@ class KerasModel(object):
 
         return train_in, train_out, test_in, test_out
 
-    def fit_model(self):
+    def fit_model(self, epochs=5):
         # for i,j in zip(train_windows, train_out):
         #  print(i,j)
 
-        self.model.fit(self.train_in, self.train_out, epochs=5, verbose=0)
+        self.model.fit(self.train_in, self.train_out, epochs=epochs, verbose=1)
 
     # call after fit_model
     def predict_on_test_data(self):
         return self.model.predict(self.test_in)
 
-    def plot_testing_vs_prediction(self):
+    def plot_testing_vs_prediction(self, **indices):
         prediction = self.predict_on_test_data()
-        visual.show_data_compare(self.df['Date'], prediction, self.test_out, 'Training', 'Actual')
+        visual.show_data_compare(self.df['Date'], prediction, self.test_out, 'Prediction', 'Actual (Test)', **indices)
 
     # predict an output based on a single window input
     # INPUT must be of length window_size
@@ -77,4 +77,4 @@ class KerasModel(object):
             print("Wrong shape?")
             return None
 
-        return self.model.predict(test_datum, verbose=0)
+        return self.model.predict(test_datum, verbose=1)

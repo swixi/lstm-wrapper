@@ -79,6 +79,8 @@ def lstm_loop(df, col_name, window_size):
         keyword = user_input[0]
         params = user_input[1:]
 
+        if 'help' in user_input:
+            print("Commands: help, window $window_size, train [$epochs], plot [index1:index2], predict $tuple")
         if keyword == "back":
             return
         # if a non-valid window size is entered (eg NaN, then keep the current one)
@@ -90,11 +92,18 @@ def lstm_loop(df, col_name, window_size):
                     model = KerasModel(df, window_size, col_name)
                     trained = False
         elif keyword == "train":
-            model.fit_model()
+            epochs = 5
+            if params:
+                temp = tools.try_parse_int(params[0])
+                if temp is not None:
+                    epochs = temp
+
+            model.fit_model(epochs)
             trained = True
         elif keyword == "plot":
             if trained:
-                model.plot_testing_vs_prediction()
+                index1, index2 = tools.parse_range(params)
+                model.plot_testing_vs_prediction(index1=index1, index2=index2)
             else:
                 print("Must train model first.")
         elif keyword == "predict":
