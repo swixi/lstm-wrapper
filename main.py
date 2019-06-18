@@ -100,6 +100,12 @@ def lstm_loop(df, col_name, window_size):
 
             model.fit_model(epochs)
             trained = True
+        elif keyword == "layers":
+            if params:
+                layers = tools.try_parse_int(params[0])
+                model.add_layers(layers)
+                print(f"Added {layers} layers.")
+                trained = False
         elif keyword == "plot":
             if trained:
                 index1, index2 = tools.parse_range(params)

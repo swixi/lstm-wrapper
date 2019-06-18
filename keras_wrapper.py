@@ -13,7 +13,7 @@ class KerasModel(object):
         self.col_name = col_name
 
         model = Sequential()
-        model.add(LSTM(50, activation='relu', input_shape=(window_size, 1)))
+        model.add(LSTM(32, activation='relu', return_sequences=True, input_shape=(window_size, 1)))
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mse')
         self.model = model
@@ -53,6 +53,17 @@ class KerasModel(object):
         test_out = np.array(test_col[window_size:])
 
         return train_in, train_out, test_in, test_out
+
+    def add_layers(self, layers):
+        if layers is None:
+            return
+        else:
+            self.model.layers.pop()
+            for _ in range(layers):
+                self.model.add(LSTM(32, return_sequences=True, activation='relu'))
+            self.model.add(Dense(1))
+            self.model.compile(optimizer='adam', loss='mse')
+            self.model.summary()
 
     def fit_model(self, epochs=5):
         # for i,j in zip(train_windows, train_out):
