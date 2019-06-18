@@ -80,7 +80,8 @@ def lstm_loop(df, col_name, window_size):
         params = user_input[1:]
 
         if 'help' in user_input:
-            print("Commands: help, window $window_size, train [$epochs], plot [index1:index2], predict $tuple")
+            print("Commands: help, window $window_size, train [$epochs], train until $percent [$steps], "
+                  "plot [index1:index2], layers, predict $tuple, summary")
         if keyword == "back":
             return
         # if a non-valid window size is entered (eg NaN, then keep the current one)
@@ -94,12 +95,21 @@ def lstm_loop(df, col_name, window_size):
         elif keyword == "train":
             epochs = 5
             if params:
+                # TODO: add $steps option
+                if 'until' in params:
+                    percent = float(params[1])
+                    model.fit_model_until_good(percent)
+                    trained = True
+                    continue
+
+                # if 'until' was not in params, proceed with normal training
                 temp = tools.try_parse_int(params[0])
                 if temp is not None:
                     epochs = temp
 
-            model.fit_model(epochs)
+            model.fit_model(epochs=epochs)
             trained = True
+        # TODO: fix
         elif keyword == "layers":
             if params:
                 layers = tools.try_parse_int(params[0])
@@ -117,6 +127,8 @@ def lstm_loop(df, col_name, window_size):
                 print("Prediction: {}".format(model.predict(params[0].split(","))))
             else:
                 print("Must train model first.")
+        elif keyword == "summary":
+            model.model_summary()
         elif 'quit' in user_input:
             quit()
 

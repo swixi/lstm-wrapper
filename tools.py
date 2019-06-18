@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 import pandas as pd
 
@@ -38,23 +39,6 @@ def parse_range(val):
     return None, None
 
 
-# INPUT: a dataframe $df with a 'Day' column
-# OUTPUT: a dictionary that has the average of $col_name for each day of $df
-def avg_by_day(df, col_name):
-    if col_name not in df:
-        print("No such column")
-        return
-
-    averages = {'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0}
-
-    for key in averages:
-        df_day = df[df['Day'] == key]
-        if len(df_day):
-            averages[key] = df_day[col_name].mean()
-
-    return averages
-
-
 def parse_data(data_file):
     df = pd.read_csv(data_file, sep=',')
 
@@ -79,3 +63,29 @@ def parse_data(data_file):
 
     print(file_name, "loaded")
     return df
+
+
+# INPUT: a dataframe $df with a 'Day' column
+# OUTPUT: a dictionary that has the average of $col_name for each day of $df
+def avg_by_day(df, col_name):
+    if col_name not in df:
+        print("No such column")
+        return
+
+    averages = {'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0}
+
+    for key in averages:
+        df_day = df[df['Day'] == key]
+        if len(df_day):
+            averages[key] = df_day[col_name].mean()
+
+    return averages
+
+
+# INPUT: a list of (positive) numbers
+# OUTPUT: the average of the pairwise percent changes between successive numbers
+def average_percent_change(nums):
+    # pairwise percent changes
+    changes = [(abs(nums[i+1]-nums[i]) / nums[i]) for i in range(0, len(nums)-1, 1)]
+    return np.mean(changes)
+

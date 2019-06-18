@@ -2,8 +2,10 @@ import numpy as np
 
 from keras import Sequential
 from keras.layers import LSTM, Dense
+from keras.callbacks import History
 
 import visual
+import tools
 
 
 class KerasModel(object):
@@ -13,10 +15,11 @@ class KerasModel(object):
         self.col_name = col_name
 
         model = Sequential()
-        model.add(LSTM(32, activation='relu', return_sequences=True, input_shape=(window_size, 1)))
+        model.add(LSTM(32, activation='relu', input_shape=(window_size, 1))) # return_sequences=True,
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mse')
         self.model = model
+        self.history = History()
 
         self.train_in, self.train_out, self.test_in, self.test_out = self.training_testing_data(0.1)
 
@@ -54,6 +57,7 @@ class KerasModel(object):
 
         return train_in, train_out, test_in, test_out
 
+    # TODO: pop is broken?
     def add_layers(self, layers):
         if layers is None:
             return
@@ -70,6 +74,23 @@ class KerasModel(object):
         #  print(i,j)
 
         self.model.fit(self.train_in, self.train_out, epochs=epochs, verbose=1)
+
+    # trains the model until the percent change between losses is as small as desired,
+    #   when averaged over $steps number of steps
+    def fit_model_until_good(self, percent, steps=5):
+        stored_loss = []
+        while True:
+            history = self.model.fit(self.train_in, self.train_out, epochs=1, verbose=1)
+            stored_loss.extend(history.history['loss'])
+            if len(stored_loss) >= steps:
+                avg_percent_change = tools.average_percent_change(stored_loss)
+                print(f"Moving percent change over {steps} steps: ", avg_percent_change)
+                if avg_percent_change <= percent:
+                    print(f"\nTotal epochs: {len(stored_loss)}")
+                    break
+
+    def model_summary(self):
+        self.model.summary()
 
     # call after fit_model
     def predict_on_test_data(self):
