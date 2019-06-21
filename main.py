@@ -13,8 +13,6 @@ import visual
 from tools import parse_data
 from keras_wrapper import KerasModel
 
-config = {}
-
 
 def main():
     # parse args from command line
@@ -44,9 +42,6 @@ def main():
 
     df = parse_data(data_file)
 
-    global config
-    config = load_config()
-
     user_loop(df, col_name)
 
 
@@ -70,7 +65,7 @@ def user_loop(df, col_name):
             if params:
                 window_size = tools.try_parse_int(params[0])
             else:
-                window_size = config['window_size']
+                window_size = defaults.window_size
 
             lstm_loop(df, col_name, window_size)
         elif 'quit' in user_input:
@@ -108,10 +103,9 @@ def lstm_loop(df, col_name, window_size):
                     model = KerasModel(df, window_size, col_name)
                     print("Initiated LSTM with window size {}.".format(window_size), "\n")
                     trained = False
-        # train [$epochs]. If no epochs specified, defaults to some number (currently 5).
+        # train [$epochs]. If no epochs specified, defaults to $epochs defined in defaults.py.
         elif keyword == "train":
-            # Default epochs
-            epochs = config['epochs']
+            epochs = defaults.epochs
 
             if params:
                 # Run training until the loss has small variation (determined by $percent)
@@ -148,32 +142,9 @@ def lstm_loop(df, col_name, window_size):
             model.model_summary()
         # Calculate mean squared error on the test data
         elif keyword == "mse":
-            print(model.mse_on_test_data())
+            print(f"MSE on prediction vs test data: {model.mse_on_test_data()}")
         elif 'quit' in user_input:
             quit()
-
-
-def load_config():
-    config = {}
-
-    with open('config') as f:
-        config_data = [x.strip('\n') for x in f.readlines()]
-
-    for datum in config_data:
-        param_split = datum.split('=')
-        param = param_split[0]
-        param_val = tools.try_parse_int(param_split[1])
-
-        if param == 'window_size':
-            config['window_size'] = param_val
-        if param == 'test_ratio':
-            config['test_ratio'] = param_val
-        if param == 'epochs':
-            config['epochs'] = param_val
-        if param == 'neurons':
-            config['neurons'] = param_val
-
-    return config
 
 
 if __name__ == "__main__":

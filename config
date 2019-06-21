@@ -1,0 +1,4 @@
+window_size=5
+test_ratio=0.1
+epochs=10
+neurons=32

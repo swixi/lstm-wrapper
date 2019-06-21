@@ -8,6 +8,7 @@ import sklearn.metrics
 
 import visual
 import tools
+import defaults
 
 
 class KerasModel(object):
@@ -21,13 +22,13 @@ class KerasModel(object):
         self.stored_loss = []
 
         model = Sequential()
-        model.add(LSTM(32, activation='relu', input_shape=(window_size, 1)))  # return_sequences=True,
+        model.add(LSTM(defaults.neurons, activation='relu', input_shape=(window_size, 1)))  # return_sequences=True,
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mse')
         self.model = model
         self.history = History()
 
-        self.train_in, self.train_out, self.test_in, self.test_out = self.training_testing_data(0.1)
+        self.train_in, self.train_out, self.test_in, self.test_out = self.training_testing_data(defaults.test_ratio)
 
     # get a list of inputs (windows) and outputs (integers)
     # ratio is percentage of data that is test data
@@ -70,12 +71,12 @@ class KerasModel(object):
         else:
             self.model.layers.pop()
             for _ in range(layers):
-                self.model.add(LSTM(32, return_sequences=True, activation='relu'))
+                self.model.add(LSTM(defaults.neurons, return_sequences=True, activation='relu'))
             self.model.add(Dense(1))
             self.model.compile(optimizer='adam', loss='mse')
             self.model.summary()
 
-    def fit_model(self, epochs=5):
+    def fit_model(self, epochs=defaults.epochs):
         # for i,j in zip(train_windows, train_out):
         #  print(i,j)
 
