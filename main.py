@@ -4,11 +4,16 @@
 import os
 import argparse
 
+import sklearn.metrics
+
 # internal imports
 import tools
+import defaults
 import visual
 from tools import parse_data
 from keras_wrapper import KerasModel
+
+config = {}
 
 
 def main():
@@ -39,6 +44,9 @@ def main():
 
     df = parse_data(data_file)
 
+    global config
+    config = load_config()
+
     user_loop(df, col_name)
 
 
@@ -62,7 +70,7 @@ def user_loop(df, col_name):
             if params:
                 window_size = tools.try_parse_int(params[0])
             else:
-                window_size = 5
+                window_size = config['window_size']
 
             lstm_loop(df, col_name, window_size)
         elif 'quit' in user_input:
@@ -72,7 +80,9 @@ def user_loop(df, col_name):
 def lstm_loop(df, col_name, window_size):
     model = KerasModel(df, window_size, col_name)
     print("Initiated LSTM with window size {}.".format(window_size), "\n")
+
     trained = False
+    needs_training = ['plot', 'predict', 'summary', 'mse']
 
     while True:
         user_input = input("Enter an LSTM command ({}, {}): ".format(col_name, window_size)).split()
@@ -82,19 +92,29 @@ def lstm_loop(df, col_name, window_size):
         if 'help' in user_input:
             print("Commands: help, window $window_size, train [$epochs], train until $percent [$steps], "
                   "plot [index1:index2], layers, predict $tuple, summary")
+            continue
         if keyword == "back":
             return
-        # if a non-valid window size is entered (eg NaN, then keep the current one)
-        elif keyword == "window":
+        if keyword in needs_training and not trained:
+            print("Need to train model first.")
+            continue
+
+        # If a non-valid window size is entered (eg NaN, then keep the current one)
+        if keyword == "window":
             if params:
                 new_window_size = tools.try_parse_int(params[0])
                 if new_window_size is not None:
                     window_size = new_window_size
                     model = KerasModel(df, window_size, col_name)
+                    print("Initiated LSTM with window size {}.".format(window_size), "\n")
                     trained = False
+        # train [$epochs]. If no epochs specified, defaults to some number (currently 5).
         elif keyword == "train":
-            epochs = 5
+            # Default epochs
+            epochs = config['epochs']
+
             if params:
+                # Run training until the loss has small variation (determined by $percent)
                 # TODO: add $steps option
                 if 'until' in params:
                     percent = float(params[1])
@@ -102,7 +122,7 @@ def lstm_loop(df, col_name, window_size):
                     trained = True
                     continue
 
-                # if 'until' was not in params, proceed with normal training
+                # If 'until' was not in params, proceed with normal training
                 temp = tools.try_parse_int(params[0])
                 if temp is not None:
                     epochs = temp
@@ -117,27 +137,43 @@ def lstm_loop(df, col_name, window_size):
                 print(f"Added {layers} layers.")
                 trained = False
         elif keyword == "plot":
-            if trained:
-                index1, index2 = tools.parse_range(params)
-                model.plot_testing_vs_prediction(index1=index1, index2=index2)
-            else:
-                print("Must train model first.")
+            index1, index2 = tools.parse_range(params)
+            model.plot_testing_vs_prediction(index1=index1, index2=index2)
+        # predict $vars
+        # where $vars is a comma delimited sequence of $window_size many numbers (single-feature)
+        # This is for user predictions, not test data
         elif keyword == "predict":
-            if trained:
-                print("Prediction: {}".format(model.predict(params[0].split(","))))
-            else:
-                print("Must train model first.")
+            print("Prediction: {}".format(model.predict(params[0].split(","))))
         elif keyword == "summary":
             model.model_summary()
+        # Calculate mean squared error on the test data
+        elif keyword == "mse":
+            print(model.mse_on_test_data())
         elif 'quit' in user_input:
             quit()
 
 
-"""
-mae = sklearn.metrics.mean_absolute_error(test_out, predictions)
+def load_config():
+    config = {}
 
-print('MAE: {}'.format(mae))
-"""
+    with open('config') as f:
+        config_data = [x.strip('\n') for x in f.readlines()]
+
+    for datum in config_data:
+        param_split = datum.split('=')
+        param = param_split[0]
+        param_val = tools.try_parse_int(param_split[1])
+
+        if param == 'window_size':
+            config['window_size'] = param_val
+        if param == 'test_ratio':
+            config['test_ratio'] = param_val
+        if param == 'epochs':
+            config['epochs'] = param_val
+        if param == 'neurons':
+            config['neurons'] = param_val
+
+    return config
 
 
 if __name__ == "__main__":

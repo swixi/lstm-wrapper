@@ -88,4 +88,3 @@ def average_percent_change(nums):
     # pairwise percent changes
     changes = [(abs(nums[i+1]-nums[i]) / nums[i]) for i in range(0, len(nums)-1, 1)]
     return np.mean(changes)
-

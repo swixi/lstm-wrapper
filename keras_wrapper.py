@@ -4,18 +4,24 @@ from keras import Sequential
 from keras.layers import LSTM, Dense
 from keras.callbacks import History
 
+import sklearn.metrics
+
 import visual
 import tools
 
 
 class KerasModel(object):
+    """
+    A class that is a container for a Keras Sequential() model.
+    """
     def __init__(self, df, window_size, col_name):
         self.window_size = window_size
         self.df = df
         self.col_name = col_name
+        self.stored_loss = []
 
         model = Sequential()
-        model.add(LSTM(32, activation='relu', input_shape=(window_size, 1))) # return_sequences=True,
+        model.add(LSTM(32, activation='relu', input_shape=(window_size, 1)))  # return_sequences=True,
         model.add(Dense(1))
         model.compile(optimizer='adam', loss='mse')
         self.model = model
@@ -88,6 +94,7 @@ class KerasModel(object):
                 if avg_percent_change <= percent:
                     print(f"\nTotal epochs: {len(stored_loss)}")
                     break
+        self.stored_loss = stored_loss
 
     def model_summary(self):
         self.model.summary()
@@ -95,6 +102,10 @@ class KerasModel(object):
     # call after fit_model
     def predict_on_test_data(self):
         return self.model.predict(self.test_in)
+
+    def mse_on_test_data(self):
+        predictions = self.predict_on_test_data()
+        return sklearn.metrics.mean_squared_error(self.test_out, predictions)
 
     def plot_testing_vs_prediction(self, **indices):
         prediction = self.predict_on_test_data()
