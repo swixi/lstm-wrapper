@@ -5,3 +5,5 @@ Run `python main.py -p PATH -c COLUMN` from the command line, where PATH is the 
 (Note the column name can be changed later while the program is running)
 
 Type `help` to see the available commands. After running the lstm, you can type `help` again to see lstm-specific commands.
+
+Initial configuration is specified in the **config** file.
