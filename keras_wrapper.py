@@ -33,6 +33,7 @@ class KerasModel(object):
     # get a list of inputs (windows) and outputs (integers)
     # ratio is percentage of data that is test data
     # one featured (at the moment)
+    # TODO: replace with sklearn.model_selection.train_test_split!
     def training_testing_data(self, test_data_ratio):
         # TODO: seems like bad methodology, change
         df = self.df
@@ -80,6 +81,8 @@ class KerasModel(object):
         # for i,j in zip(train_windows, train_out):
         #  print(i,j)
 
+        # TODO: shuffle = true in defaults?
+        # validation = 0.1
         self.model.fit(self.train_in, self.train_out, epochs=epochs, verbose=1)
 
     # trains the model until the percent change between losses is as small as desired,

@@ -3,6 +3,8 @@ import numpy as np
 
 import pandas as pd
 
+import stock_fetcher
+
 FORMAT_ERROR = "Wrong format!"
 
 
@@ -88,3 +90,28 @@ def average_percent_change(nums):
     # pairwise percent changes
     changes = [(abs(nums[i+1]-nums[i]) / nums[i]) for i in range(0, len(nums)-1, 1)]
     return np.mean(changes)
+
+
+def valid_csv(path):
+    if os.path.isfile(path) and path.split(".")[1] == "csv":
+        return True
+    return False
+
+
+def find_path():
+    """ Find a path for csv if no path was specified
+        Will only return after a valid path has been determined
+        Can fetch a stock using yfinance and download a csv for the valid path (saved locally)
+    """
+    path = ""
+    while not valid_csv(path):
+        user_input = input("Enter path or call \'fetch TICKER\': ")
+        if 'fetch' in user_input and len(user_input.split()) == 2:
+            ticker = user_input.split()[1]
+            file_name = stock_fetcher.fetch_to_file(ticker)
+            path = os.path.join(os.getcwd(), file_name)
+            print(path)
+        else:
+            path = user_input
+
+    return path

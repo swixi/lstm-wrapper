@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
 import argparse
-
-import sklearn.metrics
 
 # internal imports
 import tools
 import defaults
 import visual
-from tools import parse_data
+from tools import parse_data, valid_csv, find_path
 from keras_wrapper import KerasModel
+
+
+def find_column():
+    pass
 
 
 def main():
@@ -22,20 +23,16 @@ def main():
     parser.add_argument('--stock')
     args = parser.parse_args()
 
-    if not args.path:
-        print("No path specified")
-        quit()
+    if not args.path or not valid_csv(args.path):
+        print("No path specified (or not a valid path)")
+        args.path = find_path()
 
     if not args.col_name:
-        print("No column specified")
-        quit()
+        print("No column specified!")
+        find_column()
 
     data_file = args.path
     col_name = args.col_name
-
-    if not os.path.isfile(data_file):
-        print(data_file, "is not a file!")
-        quit()
 
     if args.stock:
         is_stock = True
@@ -53,9 +50,12 @@ def user_loop(df, col_name):
         params = user_input[1:]
 
         if 'help' in user_input:
-            print("Commands: help, column $col_name, plot [index1:index2], avg, lstm [window size], quit")
+            print("Commands: help, column, column $col_name, plot [index1:index2], avg, lstm [window size], quit")
         elif keyword == 'column':
-            col_name = user_input[1]
+            if len(keyword.split()) == 1:
+                print("Columns:\n", list(df))
+            else:
+                col_name = user_input[1]
         elif keyword == 'plot':
             index1, index2 = tools.parse_range(params)
             visual.show_data(df, col_name, index1=index1, index2=index2)
