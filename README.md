@@ -10,6 +10,8 @@ Initial configuration is specified in the **config** file.
 ## Dependencies
 pandas
 
+matplotlib
+
 sklearn
 
 numpy
